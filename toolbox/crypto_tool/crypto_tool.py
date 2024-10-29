@@ -3,39 +3,63 @@ Encryption/decryption tool
 """
 
 import argparse
+import sys
 from cryptography.fernet import Fernet, InvalidToken
 
 def load_secret_key(secret_key_file):
     """Loads the secret key from a file."""
-    with open(secret_key_file, 'rb') as file:
-        key = file.read()
-    return key
-
+    try:
+        with open(secret_key_file, 'rb') as file:
+            key = file.read()
+        return key
+    except FileNotFoundError:
+        print(f"Error: Secret key file '{secret_key_file}' not found.")
+        sys.exit(1)
+    except IOError as e:
+        print(f"Error reading secret key file '{secret_key_file}': {e}")
+        sys.exit(1)
+    
 def encrypt_file(filename, key):
     """ Encrypts the file using the provided secret key. """
     fernet = Fernet(key)
 
     # Read the file content
-    with open(filename, 'rb') as file:
-        file_data = file.read()
+    try:
+        with open(filename, 'rb') as file:
+            file_data = file.read()
+    except FileNotFoundError:
+        print(f"Error: File '{filename}' not found.")
+        return
+    except IOError as e:
+        print(f"Error reading file '{filename}': {e}")
+        return
 
     # Encrypt the data
     encrypted_data = fernet.encrypt(file_data)
 
     # Save the encrypted data to a new file
     encrypted_filename = filename + '.encrypted'
-    with open(encrypted_filename, 'wb') as file:
-        file.write(encrypted_data)
-
-    print(f"File encrypted and saved as {encrypted_filename}")
+    try:
+        with open(encrypted_filename, 'wb') as file:
+            file.write(encrypted_data)
+        print(f"File encrypted and saved as {encrypted_filename}")
+    except IOError as e:
+        print(f"Error saving encrypted file '{encrypted_filename}': {e}")
 
 def decrypt_file(filename, key):
     """ Decrypts the file using the provided secret key. """
     fernet = Fernet(key)
 
     # Read the encrypted file content
-    with open(filename, 'rb') as file:
-        encrypted_data = file.read()
+    try:
+        with open(filename, 'rb') as file:
+            encrypted_data = file.read()
+    except FileNotFoundError:
+        print(f"Error: Encrypted file '{filename}' not found.")
+        return
+    except IOError as e:
+        print(f"Error reading encrypted file '{filename}': {e}")
+        return
 
     # Try to decrypt the data
     try:
@@ -46,10 +70,13 @@ def decrypt_file(filename, key):
 
     # Save the decrypted data to a new file
     decrypted_filename = filename.replace('.encrypted', '')
-    with open(decrypted_filename, 'wb') as file:
-        file.write(decrypted_data)
-        print(f"Dekrypterad text: {decrypted_data}")  
-    print(f"File decrypted and saved as {decrypted_filename}")
+    try:
+        with open(decrypted_filename, 'wb') as file:
+            file.write(decrypted_data)
+            print(f"Dekrypterad text: {decrypted_data}")  
+        print(f"File decrypted and saved as {decrypted_filename}")
+    except IOError as e:
+        print(f"Error saving decrypted file '{decrypted_filename}': {e}")
 
 if __name__ == "__main__":
     # Create argument parser
