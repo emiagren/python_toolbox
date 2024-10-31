@@ -78,7 +78,7 @@ def decrypt_file(filename, key):
     except IOError as e:
         print(f"Error saving decrypted file '{decrypted_filename}': {e}")
 
-if __name__ == "__main__":
+def main():
     # Create argument parser
     parser = argparse.ArgumentParser(description="Encrypt or Decrypt files using a secret key.")
     parser.add_argument("operation", choices=["encrypt", "decrypt"],
@@ -97,3 +97,6 @@ if __name__ == "__main__":
         encrypt_file(args.filename, secret_key)
     elif args.operation == "decrypt":
         decrypt_file(args.filename, secret_key)
+
+if __name__ == "__main__":
+    main()
