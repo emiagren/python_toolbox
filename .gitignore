@@ -1,0 +1,5 @@
+.venv
+
+generate_key.py
+secret.key
+wordlist.txt
