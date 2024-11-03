@@ -30,7 +30,7 @@ def load_tool(tool_name):
             module.main()
         else:
             print(f"Could not run tool '{tool_name}'.")
-    except Exception as e:
+    except ImportError as e:
         print(f"Error loading tool '{tool_name}': {e}")
 
 def main():
