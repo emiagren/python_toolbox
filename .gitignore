@@ -1,5 +1,8 @@
 .venv
+*.txt
+
+**/__pycache__/
 
 generate_key.py
 secret.key
-wordlist.txt
+
