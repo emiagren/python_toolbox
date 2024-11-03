@@ -7,7 +7,7 @@ import sys
 from cryptography.fernet import Fernet, InvalidToken
 
 def load_secret_key(secret_key_file):
-    """Loads the secret key from a file."""
+    """ Loads the secret key from a file. """
     try:
         with open(secret_key_file, 'rb') as file:
             key = file.read()
@@ -79,6 +79,8 @@ def decrypt_file(filename, key):
         print(f"Error saving decrypted file '{decrypted_filename}': {e}")
 
 def main():
+    """ Parses command-line arguments to encrypt or decrypt a file using a secret key, 
+    then calls the appropriate function to perform the specified operation. """
     # Create argument parser
     parser = argparse.ArgumentParser(description="Encrypt or Decrypt files using a secret key.")
     parser.add_argument("operation", choices=["encrypt", "decrypt"],

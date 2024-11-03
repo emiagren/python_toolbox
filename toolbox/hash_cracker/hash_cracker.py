@@ -32,14 +32,14 @@ def crack_password(target_hash: str, wordlist_path: str, algorithm: str = "sha25
         return "Wordlist file not found. Please provide a valid path."
     
 def main():
-    print("Hash Cracker is now running!")
+    """Main function to prompt the user for input and crack the given hashed password"""
         # Get user inputs
-    INPUT_HASH = input("Enter the hashed password: ")
-    WORDLIST_FILE_PATH = input("Enter the path to the wordlist file: ")
-    INPUT_ALGORITHM = input("Enter the hashing algorithm (default is sha256): ") or "sha256"
+    input_hash = input("Enter the hashed password: ")
+    wordlist_file_path = input("Enter the path to the wordlist file: ")
+    input_algorithm = input("Enter the hashing algorithm (default is sha256): ") or "sha256"
 
     # Crack the password
-    print(crack_password(INPUT_HASH, WORDLIST_FILE_PATH, INPUT_ALGORITHM))
+    print(crack_password(input_hash, wordlist_file_path, input_algorithm))
 
 if __name__ == "__main__":
     main()
