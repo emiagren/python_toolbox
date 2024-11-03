@@ -12,11 +12,13 @@ def list_tools():
     return tools
 
 def display_menu(tools):
-    """Display the menu for selecting a tool."""
-    print("Python Toolbox")
+    """Display the menu for selecting a tool, formatting names nicely."""
+    print("\nPython Toolbox")
     print("--------------")
     for i, tool in enumerate(tools):
-        print(f"{i + 1}. {tool}")
+        # Replace underscores with spaces and capitalize each word
+        formatted_tool_name = tool.replace("_", " ").title()
+        print(f"{i + 1}. {formatted_tool_name}")
     print("0. Exit")
 
 def load_tool(tool_name):
