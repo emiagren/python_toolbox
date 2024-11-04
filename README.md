@@ -24,11 +24,11 @@ To run the tools in this toolbox, you’ll need the following:
 2. Install the required libraries  
 `pip install -r requirements.txt`
 3. Run the main script:  
-`python main.py`
+`python toolbox_main.py`
 
 ## Usage
 - **Run the toolbox main script**:  
-   `python main.py`  
+   `python toolbox_main.py`  
 - **Run a tool independantly**:  
     `python tool_name.py`  
 - **Add a new tool** by creating a subfolder in the `toolbox` directory, naming it `tool_name`, and including a `tool_name.py` file with a `main()` function.
