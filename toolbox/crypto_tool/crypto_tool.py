@@ -6,6 +6,15 @@ import argparse
 import sys
 from cryptography.fernet import Fernet, InvalidToken
 
+def generate_key():
+    """
+    Generates a symmetric encryption key and saves it to 'secret.key' file.
+    """
+    key = Fernet.generate_key()
+    with open("secret.key", "wb") as key_file:
+        key_file.write(key)
+    print("Secret key generated and saved as 'secret.key'")
+
 def load_secret_key(secret_key_file):
     """ Loads the secret key from a file. """
     try:
@@ -18,7 +27,7 @@ def load_secret_key(secret_key_file):
     except IOError as e:
         print(f"Error reading secret key file '{secret_key_file}': {e}")
         sys.exit(1)
-    
+
 def encrypt_file(filename, key):
     """ Encrypts the file using the provided secret key. """
     fernet = Fernet(key)
@@ -78,27 +87,35 @@ def decrypt_file(filename, key):
     except IOError as e:
         print(f"Error saving decrypted file '{decrypted_filename}': {e}")
 
-def main():
-    """ Parses command-line arguments to encrypt or decrypt a file using a secret key, 
-    then calls the appropriate function to perform the specified operation. """
+def main(args=None):
+    """ 
+    Parses command-line arguments to encrypt or decrypt a file using a secret key, 
+    then calls the appropriate function to perform the specified operation. 
+    """
     # Create argument parser
-    parser = argparse.ArgumentParser(description="Encrypt or Decrypt files using a secret key.")
-    parser.add_argument("operation", choices=["encrypt", "decrypt"],
-                        help="Choose 'encrypt' or 'decrypt'")
-    parser.add_argument("filename", help="The name of the file to encrypt or decrypt")
-    parser.add_argument("secret_keyfile", help="The file containing the secret key")
+    parser = argparse.ArgumentParser(description="Generate a key, encrypt, or decrypt files.")
+    parser.add_argument("operation", choices=["generate_key", "encrypt", "decrypt"],
+                        help="Choose 'generate_key' to create a new key, 'encrypt' to encrypt a file, or 'decrypt' to decrypt a file.")
+    parser.add_argument("filename", nargs="?", help="The name of the file to encrypt or decrypt (required for encrypt/decrypt operations).")
+    parser.add_argument("secret_keyfile", nargs="?", help="The file containing the secret key (required for encrypt/decrypt operations).")
 
-    # Parse the arguments
-    args = parser.parse_args()
+    # Parse the arguments from args if provided, otherwise use sys.argv
+    parsed_args = parser.parse_args(args if args is not None else sys.argv[1:])
 
-    # Load the secret key
-    secret_key = load_secret_key(args.secret_keyfile)
-
-    # Perform the chosen operation
-    if args.operation == "encrypt":
-        encrypt_file(args.filename, secret_key)
-    elif args.operation == "decrypt":
-        decrypt_file(args.filename, secret_key)
+    if parsed_args.operation == "generate_key":
+        generate_key()
+    elif parsed_args.operation == "encrypt":
+        if not parsed_args.filename or not parsed_args.secret_keyfile:
+            print("Error: 'encrypt' operation requires a filename and a secret key file.")
+            sys.exit(1)
+        secret_key = load_secret_key(parsed_args.secret_keyfile)
+        encrypt_file(parsed_args.filename, secret_key)
+    elif parsed_args.operation == "decrypt":
+        if not parsed_args.filename or not parsed_args.secret_keyfile:
+            print("Error: 'decrypt' operation requires a filename and a secret key file.")
+            sys.exit(1)
+        secret_key = load_secret_key(parsed_args.secret_keyfile)
+        decrypt_file(parsed_args.filename, secret_key)
 
 if __name__ == "__main__":
     main()
