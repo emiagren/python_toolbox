@@ -1,8 +1,7 @@
 .venv
 *.txt
-
+*.encrypted
+*.key
 **/__pycache__/
 
-generate_key.py
-secret.key
 
