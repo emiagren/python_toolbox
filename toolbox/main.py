@@ -4,7 +4,9 @@ The script dynamically loads and executes each tool's main function.
 """
 
 import os
+import sys
 import importlib
+import inspect
 
 def list_tools():
     """List all available tools (subfolders) in the toolbox folder."""
@@ -22,16 +24,44 @@ def display_menu(tools):
     print("0. Exit")
 
 def load_tool(tool_name):
-    """Import and run the main module inside the selected tool folder."""
+    """
+    Import and run the main module inside the selected tool folder, 
+    with support for command-line arguments.
+    """
     try:
-        # Import the tool's main module by the folder and file name
+        # Import the tool's main module
         module = importlib.import_module(f"{tool_name}.{tool_name}")
+        print(f"Successfully imported module '{tool_name}.{tool_name}'")
+
+        # Check if the module has a main function
         if hasattr(module, "main"):
-            module.main()
+            # Get the main function
+            main_func = module.main
+
+            # Check if main expects arguments
+            main_signature = inspect.signature(main_func)
+            if len(main_signature.parameters) > 0:
+                # Prompt user for arguments if main() has parameters
+                args_input = input(
+                    f"Enter arguments for '{tool_name}' (e.g., 'generate_key' or 'encrypt filename secret.key'): "
+                    )
+                args_list = args_input.split()  # Split user input to pass as argument list
+
+                # Simulate command-line arguments by setting sys.argv
+                sys.argv = [tool_name] + args_list
+                main_func()  # Call main() with simulated command-line args
+            else:
+                # Call main() without arguments if none are expected
+                main_func()
         else:
-            print(f"Could not run tool '{tool_name}'.")
+            print(f"Error: Tool '{tool_name}' does not have a 'main' function to run.")
+    except ModuleNotFoundError:
+        print(f"Error: Module '{tool_name}.{tool_name}' not found. Check folder and file names.")
+    except AttributeError:
+        print(f"Error: '{tool_name}' does not have a callable 'main' function.")
     except ImportError as e:
-        print(f"Error loading tool '{tool_name}': {e}")
+        print(f"Import error in '{tool_name}': {e}")
+
 
 def main():
     """ 
