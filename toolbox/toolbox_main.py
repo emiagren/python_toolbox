@@ -31,7 +31,6 @@ def load_tool(tool_name):
     try:
         # Import the tool's main module
         module = importlib.import_module(f"{tool_name}.{tool_name}")
-        print(f"Successfully imported module '{tool_name}.{tool_name}'")
 
         # Check if the module has a main function
         if hasattr(module, "main"):
