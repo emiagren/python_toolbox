@@ -38,6 +38,8 @@ def load_secret_key(secret_key_file):
 def encrypt_file(filename, key):
     """Encrypts the file using the provided secret key."""
     fernet = Fernet(key)
+
+    # Read the file content
     try:
         with open(filename, 'rb') as file:
             file_data = file.read()
@@ -48,7 +50,10 @@ def encrypt_file(filename, key):
         print(f"Error reading file '{filename}': {e}")
         return
 
+    # Encrypt the data
     encrypted_data = fernet.encrypt(file_data)
+
+    # Save the encrypted data to a new file
     encrypted_filename = filename + '.encrypted'
     try:
         with open(encrypted_filename, 'wb') as file:
@@ -60,6 +65,8 @@ def encrypt_file(filename, key):
 def decrypt_file(filename, key):
     """Decrypts the file using the provided secret key."""
     fernet = Fernet(key)
+
+    # Read the encrypted file content
     try:
         with open(filename, 'rb') as file:
             encrypted_data = file.read()
@@ -70,12 +77,14 @@ def decrypt_file(filename, key):
         print(f"Error reading encrypted file '{filename}': {e}")
         return
 
+    # Try to decrypt the data
     try:
         decrypted_data = fernet.decrypt(encrypted_data)
     except InvalidToken:
         print("Decryption failed. Incorrect secret key or corrupted file.")
         return
 
+    # Save the decrypted data to a new file
     decrypted_filename = filename.replace('.encrypted', '')
     try:
         with open(decrypted_filename, 'wb') as file:
