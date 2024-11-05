@@ -1,8 +1,15 @@
 """
-Search tool to lookup an IP:s geographical location.
+Tool for looking up an IP's geographical location.
 """
 
+import argparse
 import requests
+
+def get_parser():
+    """Returns a command-line argument parser."""
+    parser = argparse.ArgumentParser(description="Look up the geographical location of an IP address.")
+    parser.add_argument("ip", help="The IP address to look up.")
+    return parser
 
 def get_ip_location(ip_address, timeout=10):
     """ 
@@ -12,16 +19,12 @@ def get_ip_location(ip_address, timeout=10):
     url = f"http://ip-api.com/json/{ip_address}"
 
     try:
-        # Make a GET request to the API
         response = requests.get(url, timeout=timeout)
-        response.raise_for_status()  # Check if the request was successful
-
-        # Parse the JSON response
+        response.raise_for_status()  # Ensures non-200 responses are caught as exceptions
         data = response.json()
 
-        # Check if the API returned a success status
         if data['status'] == 'success':
-            location_data = {
+            return {
                 'IP': data['query'],
                 'Country': data['country'],
                 'Region': data['regionName'],
@@ -31,27 +34,30 @@ def get_ip_location(ip_address, timeout=10):
                 'Longitude': data['lon'],
                 'ISP': data['isp']
             }
-            return location_data
         else:
             # Handle error returned by the API
-            return f"Error: {data['message']}"
+            return f"Error: {data.get('message', 'Lookup failed')}."
 
     except requests.RequestException as e:
-        # Handle any requests exceptions
         return f"Request error: {e}"
 
 def main():
     """
-    Main function to prompt the user for an IP address, look up its location,
+    Main function to parse command-line arguments, look up the IP address location,
     and display the results.
     """
-    # Take IP address as user input
-    ip = input("Enter an IP address to lookup: ")
+    parser = get_parser()
+    args = parser.parse_args()
 
-    # Fetch and display the location info
-    location_info = get_ip_location(ip)
-    print(location_info)
+    # Fetch location data
+    location_info = get_ip_location(args.ip)
 
-# Run the main function
+    # Print location info or error message
+    if isinstance(location_info, dict):
+        for key, value in location_info.items():
+            print(f"{key}: {value}")
+    else:
+        print(location_info)
+
 if __name__ == "__main__":
     main()

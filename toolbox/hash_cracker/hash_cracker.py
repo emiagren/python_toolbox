@@ -2,15 +2,32 @@
 Tool for cracking hashed passwords
 """
 
+import sys
+import argparse
 import hashlib
+
+def get_parser():
+    """Returns a command-line argument parser."""
+    parser = argparse.ArgumentParser(description="Password Hash Cracker")
+    parser.add_argument("target_hash", help="The hashed password to crack")
+    parser.add_argument("wordlist_path", help="Path to the wordlist file")
+    parser.add_argument(
+        "-a", "--algorithm", default="sha256",
+        help="Hashing algorithm used for the hash (default: sha256)"
+    )
+    return parser
 
 def hash_password(password: str, algorithm: str = "sha256") -> str:
     """
     Hash a password using the specified hashing algorithm.
     Default is sha256.
     """
-    hash_object = hashlib.new(algorithm)
-    hash_object.update(password.encode('utf-8'))
+    try:
+        hash_object = hashlib.new(algorithm)
+    except ValueError:
+        sys.exit(f"Error: Unsupported algorithm '{algorithm}'. Please use a valid hashing algorithm.")
+    
+    hash_object.update(password.encode("utf-8"))
     return hash_object.hexdigest()
 
 def crack_password(target_hash: str, wordlist_path: str, algorithm: str = "sha256") -> str:
@@ -18,28 +35,27 @@ def crack_password(target_hash: str, wordlist_path: str, algorithm: str = "sha25
     Try to crack the hashed password using a file with a list of passwords.
     """
     try:
-        with open(wordlist_path, 'r', encoding="utf-8") as file:
+        with open(wordlist_path, "r", encoding="utf-8") as file:
             for word in file:
-                word = word.strip()  # Remove any whitespace or newline characters
+                word = word.strip()
                 hashed_word = hash_password(word, algorithm)
-
                 if hashed_word == target_hash:
                     return f"Password found: {word}"
-
         return "Password not found in wordlist."
-
-    except FileNotFoundError:
-        return "Wordlist file not found. Please provide a valid path."
     
+    except FileNotFoundError:
+        return "Error: Wordlist file not found. Please provide a valid path."
+    except UnicodeDecodeError:
+        return "Error: Unable to decode the wordlist file. Please ensure it is a text file with UTF-8 encoding."
+
 def main():
-    """Main function to prompt the user for input and crack the given hashed password"""
-        # Get user inputs
-    input_hash = input("Enter the hashed password: ")
-    wordlist_file_path = input("Enter the path to the wordlist file: ")
-    input_algorithm = input("Enter the hashing algorithm (default is sha256): ") or "sha256"
+    """Main function for parsing arguments and cracking the password."""
+    parser = get_parser()
+    args = parser.parse_args()
 
     # Crack the password
-    print(crack_password(input_hash, wordlist_file_path, input_algorithm))
+    result = crack_password(args.target_hash, args.wordlist_path, args.algorithm)
+    print(result)
 
 if __name__ == "__main__":
     main()
