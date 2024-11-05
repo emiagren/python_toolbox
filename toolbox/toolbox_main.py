@@ -1,12 +1,11 @@
 """
-Main script that displays a menu of available tools for the user to select and run. 
-The script dynamically loads and executes each tool's main function.
+Main script that displays a menu of available tools for the user to select and run.
+The script dynamically loads and executes each tool's main function with command-line arguments.
 """
 
 import os
 import sys
 import importlib
-import inspect
 
 def list_tools():
     """List all available tools (subfolders) in the toolbox folder."""
@@ -23,10 +22,31 @@ def display_menu(tools):
         print(f"{i + 1}. {formatted_tool_name}")
     print("0. Exit")
 
+def show_tool_arguments(tool_name):
+    """
+    Display the unique argument options for a tool, 
+    if the tool provides a get_parser function.
+    """
+    try:
+        # Load the tool module and check for a 'get_parser' function
+        module = importlib.import_module(f"{tool_name}.{tool_name}")
+        if hasattr(module, "get_parser"):
+            parser = module.get_parser()
+            if parser:
+                parser.print_help()
+            else:
+                print(f"No argument information available for '{tool_name}'.")
+        else:
+            print(f"No argument information available for '{tool_name}'.")
+    except ModuleNotFoundError:
+        print(f"Error: Module '{tool_name}.{tool_name}' not found.")
+    except ImportError as e:
+        print(f"Import error in '{tool_name}': {e}")
+
 def load_tool(tool_name):
     """
     Import and run the main module inside the selected tool folder, 
-    with support for command-line arguments.
+    with command-line arguments.
     """
     try:
         # Import the tool's main module
@@ -34,39 +54,46 @@ def load_tool(tool_name):
 
         # Check if the module has a main function
         if hasattr(module, "main"):
-            # Get the main function
-            main_func = module.main
+            # Display the argument options before prompting for user input
+            print(f"\nArgument options for '{tool_name}':")
+            show_tool_arguments(tool_name)
 
-            # Check if main expects arguments
-            main_signature = inspect.signature(main_func)
-            if len(main_signature.parameters) > 0:
-                # Prompt user for arguments if main() has parameters
+            while True:  # Loop to allow retrying arguments or going back
                 args_input = input(
-                    f"Enter arguments for '{tool_name}' (e.g., 'generate_key' or 'encrypt filename secret.key'): "
-                    )
-                args_list = args_input.split()  # Split user input to pass as argument list
+                    f"\nEnter arguments for '{tool_name}' (type 'm' to return to menu): "
+                )
 
-                # Simulate command-line arguments by setting sys.argv
-                sys.argv = [tool_name] + args_list
-                main_func()  # Call main() with simulated command-line args
-            else:
-                # Call main() without arguments if none are expected
-                main_func()
+                if args_input.strip().lower() == 'm':  # Allow the user to return to the menu
+                    print("Returning to the main menu...")
+                    break
+
+                args_list = args_input.split()  # Split input to pass as argument list
+
+                # Temporarily replace sys.argv to simulate command-line arguments
+                original_argv = sys.argv  # Save original sys.argv
+                sys.argv = [tool_name] + args_list  # Set sys.argv for this tool
+
+                try:
+                    module.main()  # Call main() with simulated command-line args
+                finally:
+                    sys.argv = original_argv  # Restore original sys.argv
+
+                # Prompt user for action
+                next_action = input("\nWould you like to try again? (y/n): ").strip().lower()
+                if next_action != 'y':
+                    break
         else:
             print(f"Error: Tool '{tool_name}' does not have a 'main' function to run.")
     except ModuleNotFoundError:
-        print(f"Error: Module '{tool_name}.{tool_name}' not found. Check folder and file names.")
-    except AttributeError:
-        print(f"Error: '{tool_name}' does not have a callable 'main' function.")
+        print(f"Error: Module '{tool_name}.{tool_name}' not found.")
     except ImportError as e:
         print(f"Import error in '{tool_name}': {e}")
 
-
 def main():
-    """ 
+    """
     Main function that displays the menu of available tools,
-    prompts the user to select a tool, then loads and runs the 
-    selected tool's main function.
+    prompts the user to select a tool, then shows its argument help,
+    and finally runs the tool with provided command-line arguments.
     """
     tools = list_tools()
 
@@ -75,16 +102,22 @@ def main():
 
         # Prompt user for input
         try:
-            choice = int(input("\nEnter the number of the tool you want to run: "))
-            if choice == 0:
+            choice = input("\nEnter the number of the tool you want to run: ")
+
+            if choice == '0':
                 print("Exiting the toolbox. Goodbye!")
                 break
-            elif 1 <= choice <= len(tools):
-                tool_name = tools[choice - 1]
-                print(f"\nRunning '{tool_name}'...\n")
-                load_tool(tool_name)
             else:
-                print("Invalid selection. Please try again.")
+                try:
+                    tool_choice = int(choice)
+                    if 1 <= tool_choice <= len(tools):
+                        tool_name = tools[tool_choice - 1]
+                        print(f"\nPreparing to run '{tool_name}'...\n")
+                        load_tool(tool_name)
+                    else:
+                        print("Invalid tool selection. Please try again.")
+                except ValueError:
+                    print("Invalid selection. Please enter a number.")
         except ValueError:
             print("Please enter a valid number.")
 
