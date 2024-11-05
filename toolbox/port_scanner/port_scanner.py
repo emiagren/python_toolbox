@@ -8,9 +8,18 @@ import nmap
 
 def get_parser():
     """Returns a command-line argument parser."""
-    parser = argparse.ArgumentParser(description="A network scanner using Nmap for TCP connect, service/version detection, OS detection, and vulnerability scanning.")
+    parser = argparse.ArgumentParser(
+        description="""
+        A network scanner using Nmap for TCP connect, 
+        service/version detection, OS detection, and vulnerability scanning.
+        """
+        )
     parser.add_argument("host", help="The IP address or hostname to scan.")
-    parser.add_argument("scan_type", choices=["tcp", "service", "os", "vuln"], help="Scan type: 'tcp', 'service', 'os', or 'vuln'.")
+    parser.add_argument(
+        "scan_type", 
+        choices=["tcp", "service", "os", "vuln"],
+        help="Scan type: 'tcp', 'service', 'os', or 'vuln'."
+        )
     parser.add_argument("--ports", help="Specify a port range (e.g., '20-80') for 'tcp' scan only.")
     return parser
 
@@ -29,7 +38,7 @@ def perform_scan(scanner, host, arguments, scan_type):
     if not scanner[host].all_protocols():
         return "No open ports or services found.\n"
 
-    result = f"{scan_type.capitalize()} Scan Results for {host} - {datetime.datetime.now()}\n"
+    result = f"{scan_type.capitalize()} Scan Results for {host} - {datetime.datetime.now().replace(microsecond=0)}\n"
     for proto in scanner[host].all_protocols():
         result += f"Protocol: {proto}\n"
         ports = scanner[host][proto].keys()
@@ -71,7 +80,7 @@ def vulnerability_scan(scanner, host):
     print(f"Performing Vulnerability Scan on {host}...")
     scanner.scan(host, arguments="--script vuln")
 
-    result = f"Vulnerability Scan Results for {host} - {datetime.datetime.now()}\n"
+    result = f"Vulnerability Scan Results for {host} - {datetime.datetime.now().replace(microsecond=0)}\n"
     if 'hostscript' in scanner[host]:
         for script in scanner[host]['hostscript']:
             result += f"Script: {script['id']}, Output: {script['output']}\n"
